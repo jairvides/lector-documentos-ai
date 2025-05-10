@@ -22,7 +22,6 @@ app.post('/preview', upload.single('document'), async (req, res) => {
     res.json({ previewText });
   } catch (error) {
     console.error(error);
-    // Se envía un JSON válido en caso de error
     res.status(500).json({ error: 'Error al generar la previsualización.' });
   }
 });
@@ -32,7 +31,6 @@ app.post('/upload', upload.single('document'), async (req, res) => {
   try {
     const filePath = req.file.path;
     const format = req.body.format || 'docx';
-
     const outputPath = await processDocument(filePath, format);
 
     res.download(outputPath, err => {
@@ -50,6 +48,10 @@ app.post('/upload', upload.single('document'), async (req, res) => {
   }
 });
 
-// Iniciar servidor
-const PORT = process.env.PORT || 3000;
-app.listen(PORT);
+// Iniciar servidor si no está siendo ejecutado por Vercel
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT);
+}
+
+module.exports = app;
