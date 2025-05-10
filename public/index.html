@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lector de Documentos AI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    form {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      max-width: 400px;
+      margin: 0 auto;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    label,
+    select,
+    input,
+    button {
+      display: block;
+      margin: 1rem auto;
+      width: 100%;
+    }
+
+    button {
+      background-color: #0078d4;
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Sube tu documento para OCR</h1>
+  <form id="uploadForm">
+    <input type="file" name="document" id="documentInput" required><br><br>
+    <button type="button" id="previewBtn">Obtener Previsualización</button>
+  </form>
+  <div id="previewSection" style="display:none;">
+    <h2>Previsualización</h2>
+    <pre id="previewText"></pre>
+    <label for="formatSelect">Selecciona formato:</label>
+    <select name="format" id="formatSelect">
+      <option value="docx">DOCX</option>
+      <option value="txt">TXT</option>
+      <option value="pdf">PDF</option>
+    </select><br><br>
+    <button type="button" id="downloadBtn">Descargar Archivo Procesado</button>
+  </div>
+
+  <script>
+    let selectedFile = null;
+    const previewBtn = document.getElementById('previewBtn');
+    const documentInput = document.getElementById('documentInput');
+    const previewSection = document.getElementById('previewSection');
+    const previewText = document.getElementById('previewText');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const formatSelect = document.getElementById('formatSelect');
+
+    previewBtn.addEventListener('click', async () => {
+      if (documentInput.files.length === 0) {
+        alert('Selecciona un archivo.');
+        return;
+      }
+      selectedFile = documentInput.files[0];
+      const formData = new FormData();
+      formData.append('document', selectedFile);
+      try {
+        const response = await fetch('/preview', { method: 'POST', body: formData });
+        const data = await response.json();
+        previewText.textContent = data.previewText.join('\n');
+        previewSection.style.display = 'block';
+      } catch (error) {
+        console.error('Error obteniendo previsualización:', error);
+      }
+    });
+
+    downloadBtn.addEventListener('click', async () => {
+      if (!selectedFile) {
+        alert('Primero selecciona y previsualiza un archivo.');
+        return;
+      }
+      const format = formatSelect.value;
+      const formData = new FormData();
+      formData.append('document', selectedFile);
+      formData.append('format', format);
+      try {
+        const response = await fetch('/upload', { method: 'POST', body: formData });
+        if (!response.ok) throw new Error('Error en la descarga');
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `documento.${format}`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (error) {
+        console.error('Error al descargar el archivo procesado:', error);
+      }
+    });
+  </script>
+</body>
+
+</html>
