@@ -49,9 +49,15 @@ app.post('/upload', upload.single('document'), async (req, res) => {
 });
 
 // Iniciar servidor si no está siendo ejecutado por Vercel
-if (process.env.NODE_ENV !== 'production') {
+/*if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT);
-}
+}*/
+
+// iniciar el sevidor
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en el puerto ${PORT}`);
+});
 
 module.exports = app;
